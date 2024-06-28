@@ -41,11 +41,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function toggleCircle(line, event) {
         const circles = line.querySelectorAll('.circle');
-        const minDistance = 30; // Minimum distance between circles
+        const minDistance = 30; 
 
         for (const circle of circles) {
             if (circle.style.display === 'block' && Math.abs(event.offsetX - parseInt(circle.style.left)) < minDistance) {
-                return; // Prevent overlap
+                return; 
             }
         }
 
@@ -92,19 +92,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function showEditField() {
-        // Remove any existing edit field
         const existingField = document.getElementById('editField');
         if (existingField) {
             existingField.remove();
         }
 
-        // Remove any existing text span
         const existingText = selectedCircle.parentElement.querySelector('.circle-text');
         if (existingText) {
             existingText.remove();
         }
 
-        // Create a new input field for editing
         const editField = document.createElement('input');
         editField.id = 'editField';
         editField.type = 'text';
@@ -112,16 +109,13 @@ document.addEventListener('DOMContentLoaded', () => {
         editField.style.left = `${selectedCircle.offsetLeft + 25}px`;
         editField.style.top = `${selectedCircle.offsetTop}px`;
 
-        // Set the color of the input text to match the circle's border color
         const borderColor = getComputedStyle(selectedCircle).borderColor;
         editField.style.color = borderColor;
 
         selectedCircle.parentElement.appendChild(editField);
 
-        // Focus the input field
         editField.focus();
 
-        // Handle input submission
         const submitText = () => {
             const text = editField.value.trim();
             if (text) {
