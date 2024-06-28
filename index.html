@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendar Layout</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+    <style>
+        .line {
+            border-top: 1px solid #8f8c96;
+            position: relative;
+            cursor: pointer;
+            height: 20px;
+            margin-left: 20px;
+        }
+        .circle {
+            position: absolute;
+            top: -10px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #fff;
+            border: 2px solid transparent;
+            display: none;
+            transition: border-color 0.3s;
+        }
+        .circle.hovered {
+            border-color: #000; /* Change color for hover effect */
+        }
+        .col-k .circle {
+            border-color: #f00;
+        }
+        .col-s .circle {
+            border-color: #0f0;
+        }
+        .col-p .circle {
+            border-color: #00f;
+        }
+        .header, .item {
+            display: flex;
+            align-items: center;
+        }
+        .header > div, .item > div {
+            flex: 1;
+            text-align: center;
+        }
+        .item .date {
+            flex: 0 0 100px;
+            text-align: center;
+        }
+        .flex-item {
+            display: flex;
+            align-items: center;
+        }
+        .flex-item div {
+            flex: 1;
+            text-align: center;
+        }
+        .col {
+            display: flex;
+            flex-direction: column;
+        }
+        .placeholder {
+            flex: 1;
+            border-top: 1px solid #8f8c96;
+            display: none;
+        }
+        .spacer {
+            flex: 0 0 100px;
+        }
+        .menu {
+            display: none;
+        }
+        .block-hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-white">
+    <!-- Button with dropdown -->
+    <div class="relative">
+        <button id="dropdownButton" class="p-2 border border-black rounded bg-white hover:bg-gray-200 transition">
+            ↓
+        </button>
+        <div id="dropdownMenu" class="menu absolute mt-2 w-24 bg-white border border-gray-300 rounded shadow-lg">
+            <div class="p-2 text-red-300 hover:text-red-500 cursor-pointer" data-block="col-k">К</div>
+            <div class="p-2 text-green-300 hover:text-green-500 cursor-pointer" data-block="col-s">С</div>
+            <div class="p-2 text-blue-300 hover:text-blue-500 cursor-pointer" data-block="col-p">П</div>
+        </div>
+    </div>
+
+    <div class="container mx-auto py-8">
+        <div class="header mb-4">
+            <div class="spacer"></div>
+            <div class="text-red-300 col-k">К</div>
+            <div class="text-green-300 col-s">С</div>
+            <div class="text-blue-300 col-p">П</div>
+        </div>
+        
+        <div class="overflow-y-scroll h-96">
+            <div id="dateContainer" class="space-y-4">
+                <!-- Example flex-item -->
+                <div class="flex-item">
+                    <div class="date">01.01</div>
+                    <div class="line col-k"></div>
+                    <div class="line col-s"></div>
+                    <div class="line col-p"></div>
+                    <div class="placeholder placeholder-k"></div>
+                    <div class="placeholder placeholder-s"></div>
+                    <div class="placeholder placeholder-p"></div>
+                </div>
+                <!-- Additional flex-items will be added here by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Context menu -->
+    <div id="contextMenu" class="menu absolute bg-white border border-gray-300 rounded shadow-lg">
+        <div class="p-2 text-red-500 cursor-pointer">Удалить</div>
+        <div class="p-2 text-black cursor-pointer">Соединить</div>
+        <div class="p-2 text-black cursor-pointer">Редактировать</div>
+    </div>
+
+    <script src="/script.js"></script>
+</body>
+</html>
