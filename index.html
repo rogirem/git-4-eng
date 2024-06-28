@@ -25,7 +25,7 @@
             transition: border-color 0.3s;
         }
         .circle.hovered {
-            border-color: #000; /* Change color for hover effect */
+            border-color: #000; 
         }
         .col-k .circle {
             border-color: #f00;
@@ -77,7 +77,6 @@
     </style>
 </head>
 <body class="bg-white">
-    <!-- Button with dropdown -->
     <div class="relative">
         <button id="dropdownButton" class="p-2 border border-black rounded bg-white hover:bg-gray-200 transition">
             ↓
@@ -99,7 +98,6 @@
         
         <div class="overflow-y-scroll h-96">
             <div id="dateContainer" class="space-y-4">
-                <!-- Example flex-item -->
                 <div class="flex-item">
                     <div class="date">01.01</div>
                     <div class="line col-k"></div>
@@ -109,12 +107,10 @@
                     <div class="placeholder placeholder-s"></div>
                     <div class="placeholder placeholder-p"></div>
                 </div>
-                <!-- Additional flex-items will be added here by JavaScript -->
             </div>
         </div>
     </div>
 
-    <!-- Context menu -->
     <div id="contextMenu" class="menu absolute bg-white border border-gray-300 rounded shadow-lg">
         <div class="p-2 text-red-500 cursor-pointer">Удалить</div>
         <div class="p-2 text-black cursor-pointer">Соединить</div>
