@@ -2,9 +2,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const dropdownButton = document.getElementById('dropdownButton');
     const dropdownMenu = document.getElementById('dropdownMenu');
     const contextMenu = document.getElementById('contextMenu');
+    const svgCanvas = document.getElementById('svgCanvas');
     let selectedCircle = null;
     let isConnecting = false;
-    let currentLine = null;
 
     dropdownButton.addEventListener('click', () => {
         dropdownMenu.classList.toggle('menu');
@@ -15,35 +15,28 @@ document.addEventListener('DOMContentLoaded', () => {
         const blocks = document.querySelectorAll(`.${blockClass}`);
         blocks.forEach(block => {
             block.classList.toggle('block-hidden');
+            updateSvgVisibility();
         });
         dropdownMenu.classList.add('menu');
     });
 
     document.addEventListener('click', () => {
         contextMenu.classList.add('menu');
-        if (isConnecting) {
-            isConnecting = false;
-            document.body.removeChild(currentLine);
-            currentLine = null;
-        }
     });
 
-    document.addEventListener('mousemove', (event) => {
-        if (isConnecting) {
-            const startX = selectedCircle.getBoundingClientRect().left + selectedCircle.offsetWidth / 2;
-            const startY = selectedCircle.getBoundingClientRect().top + selectedCircle.offsetHeight / 2;
-            currentLine.style.width = `${Math.hypot(event.pageX - startX, event.pageY - startY)}px`;
-            currentLine.style.transform = `rotate(${Math.atan2(event.pageY - startY, event.pageX - startX)}rad)`;
-            currentLine.style.left = `${startX}px`;
-            currentLine.style.top = `${startY}px`;
-        }
+    document.addEventListener('contextmenu', (event) => {
+        event.preventDefault();
+        if (!event.target.classList.contains('circle')) return;
+        selectedCircle = event.target;
+        contextMenu.style.left = `${event.pageX}px`;
+        contextMenu.style.top = `${event.pageY}px`;
+        contextMenu.classList.remove('menu');
     });
 
     function toggleCircle(line, event) {
-        const circles = line.querySelectorAll('.circle');
         const minDistance = 30; 
 
-        for (const circle of circles) {
+        for (const circle of line.querySelectorAll('.circle')) {
             if (circle.style.display === 'block' && Math.abs(event.offsetX - parseInt(circle.style.left)) < minDistance) {
                 return; 
             }
@@ -57,14 +50,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
         circle.addEventListener('click', (e) => {
             e.stopPropagation();
-        });
+            if (isConnecting && selectedCircle && selectedCircle !== circle) {
+                if (selectedCircle.parentElement.classList[1] !== circle.parentElement.classList[1]) {
+                    return; 
+                }
+                const startX = selectedCircle.getBoundingClientRect().left + selectedCircle.offsetWidth / 2;
+                const startY = selectedCircle.getBoundingClientRect().top + selectedCircle.offsetHeight / 2;
+                const endX = circle.getBoundingClientRect().left + circle.offsetWidth / 2;
+                const endY = circle.getBoundingClientRect().top + circle.offsetHeight / 2;
 
-        circle.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-            selectedCircle = circle;
-            contextMenu.style.left = `${e.pageX}px`;
-            contextMenu.style.top = `${e.pageY}px`;
-            contextMenu.classList.remove('menu');
+                const svgRect = svgCanvas.getBoundingClientRect();
+
+                const lineElement = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                lineElement.setAttribute('x1', startX - svgRect.left);
+                lineElement.setAttribute('y1', startY - svgRect.top);
+                lineElement.setAttribute('x2', startX - svgRect.left);
+                lineElement.setAttribute('y2', startY - svgRect.top);
+                lineElement.setAttribute('stroke', getComputedStyle(selectedCircle).borderColor);
+                lineElement.setAttribute('class', 'connection-line');
+                svgCanvas.appendChild(lineElement);
+
+                requestAnimationFrame(() => {
+                    lineElement.setAttribute('x2', endX - svgRect.left);
+                    lineElement.setAttribute('y2', endY - svgRect.top);
+                });
+
+                selectedCircle.classList.remove('selected');
+                selectedCircle = null;
+                isConnecting = false;
+            }
         });
 
         circle.addEventListener('mouseover', () => {
@@ -78,13 +92,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     contextMenu.addEventListener('click', (event) => {
         if (event.target.textContent === 'Удалить') {
-            selectedCircle.style.display = 'none';
+            const textElement = selectedCircle.parentElement.querySelector('.circle-text');
+            if (textElement) {
+                textElement.remove();
+            }
+            selectedCircle.remove();
         } else if (event.target.textContent === 'Соединить') {
             isConnecting = true;
-            currentLine = document.createElement('div');
-            currentLine.style.position = 'absolute';
-            currentLine.style.border = `1px solid ${getComputedStyle(selectedCircle).borderColor}`;
-            document.body.appendChild(currentLine);
+            if (selectedCircle) {
+                selectedCircle.classList.add('selected');
+            }
         } else if (event.target.textContent === 'Редактировать') {
             showEditField();
         }
@@ -96,26 +113,20 @@ document.addEventListener('DOMContentLoaded', () => {
         if (existingField) {
             existingField.remove();
         }
-
         const existingText = selectedCircle.parentElement.querySelector('.circle-text');
         if (existingText) {
             existingText.remove();
         }
-
         const editField = document.createElement('input');
         editField.id = 'editField';
         editField.type = 'text';
         editField.className = 'absolute z-10 border rounded px-1 py-0.5';
         editField.style.left = `${selectedCircle.offsetLeft + 25}px`;
         editField.style.top = `${selectedCircle.offsetTop}px`;
-
         const borderColor = getComputedStyle(selectedCircle).borderColor;
         editField.style.color = borderColor;
-
         selectedCircle.parentElement.appendChild(editField);
-
         editField.focus();
-
         const submitText = () => {
             const text = editField.value.trim();
             if (text) {
@@ -123,17 +134,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 span.textContent = text;
                 span.className = 'circle-text absolute';
                 span.style.color = borderColor;
-                span.style.transform = 'rotate(-90deg)';
-                span.style.transformOrigin = 'left top 0';
-                span.style.left = `${selectedCircle.offsetLeft + 10}px`;
+                span.style.left = `${selectedCircle.offsetLeft}px`;
                 span.style.top = `${selectedCircle.offsetTop - 20}px`;
                 selectedCircle.parentElement.appendChild(span);
             }
             editField.remove();
         };
-
         editField.addEventListener('blur', submitText);
-
         editField.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 submitText();
@@ -143,6 +150,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function generateDatesAndLines() {
         const dateContainer = document.getElementById('dateContainer');
+        const numCircles = 20; 
+        const circleSpacing = 30;
+
         for (let i = 2; i <= 30; i++) {
             const date = new Date(2024, 0, i);
             const day = date.getDate().toString().padStart(2, '0');
@@ -159,23 +169,88 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="placeholder placeholder-p"></div>
             `;
             dateContainer.appendChild(flexItem);
-        }
 
-        document.querySelectorAll('.line').forEach(line => {
-            line.addEventListener('click', (event) => {
-                if (event.target.classList.contains('circle')) {
-                    return;
+            const lines = flexItem.querySelectorAll('.line');
+            lines.forEach(line => {
+                for (let j = 0; j < numCircles; j++) {
+                    const circle = document.createElement('div');
+                    circle.classList.add('circle', line.classList[1]);
+                    circle.style.left = `${circleSpacing * j}px`;
+                    circle.style.display = 'none'; 
+                    line.appendChild(circle);
+
+                    circle.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        if (isConnecting && selectedCircle && selectedCircle !== circle) {
+                            if (selectedCircle.parentElement.classList[1] !== circle.parentElement.classList[1]) {
+                                return; 
+                            }
+                            const startX = selectedCircle.getBoundingClientRect().left + selectedCircle.offsetWidth / 2;
+                            const startY = selectedCircle.getBoundingClientRect().top + selectedCircle.offsetHeight / 2;
+                            const endX = circle.getBoundingClientRect().left + circle.offsetWidth / 2;
+                            const endY = circle.getBoundingClientRect().top + circle.offsetHeight / 2;
+
+                            const svgRect = svgCanvas.getBoundingClientRect();
+
+                            const lineElement = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                            lineElement.setAttribute('x1', startX - svgRect.left);
+                            lineElement.setAttribute('y1', startY - svgRect.top);
+                            lineElement.setAttribute('x2', startX - svgRect.left);
+                            lineElement.setAttribute('y2', startY - svgRect.top);
+                            lineElement.setAttribute('stroke', getComputedStyle(selectedCircle).borderColor);
+                            lineElement.setAttribute('class', 'connection-line');
+                            svgCanvas.appendChild(lineElement);
+
+                            requestAnimationFrame(() => {
+                                lineElement.setAttribute('x2', endX - svgRect.left);
+                                lineElement.setAttribute('y2', endY - svgRect.top);
+                            });
+
+                            selectedCircle.classList.remove('selected');
+                            selectedCircle = null;
+                            isConnecting = false;
+                        }
+                    });
+
+                    circle.addEventListener('mouseover', () => {
+                        circle.classList.add('hovered');
+                    });
+
+                    circle.addEventListener('mouseout', () => {
+                        circle.classList.remove('hovered');
+                    });
                 }
-                toggleCircle(line, event);
+                line.addEventListener('click', (event) => {
+                    if (!event.target.classList.contains('circle')) {
+                        toggleCircle(line, event);
+                    }
+                });
             });
+        }
+    }
 
-            line.addEventListener('contextmenu', (event) => {
-                event.preventDefault();
-                if (!event.target.classList.contains('circle')) return;
-                selectedCircle = event.target;
-                contextMenu.style.left = `${event.pageX}px`;
-                contextMenu.style.top = `${event.pageY}px`;
-                contextMenu.classList.remove('menu');
+    function updateSvgVisibility() {
+        const lines = document.querySelectorAll('.line');
+        lines.forEach(line => {
+            const circles = line.querySelectorAll('.circle');
+            circles.forEach(circle => {
+                const circleRect = circle.getBoundingClientRect();
+                const svgRect = svgCanvas.getBoundingClientRect();
+                const connections = svgCanvas.querySelectorAll('.connection-line');
+                connections.forEach(connection => {
+                    const x1 = parseFloat(connection.getAttribute('x1')) + svgRect.left;
+                    const y1 = parseFloat(connection.getAttribute('y1')) + svgRect.top;
+                    const x2 = parseFloat(connection.getAttribute('x2')) + svgRect.left;
+                    const y2 = parseFloat(connection.getAttribute('y2')) + svgRect.top;
+                    if ((Math.abs(circleRect.left - x1) < 5 && Math.abs(circleRect.top - y1) < 5) ||
+                        (Math.abs(circleRect.left - x2) < 5 && Math.abs(circleRect.top - y2) < 5)) {
+                        if (line.classList.contains('block-hidden')) {
+                            connection.style.display = 'none';
+                        } else {
+                            connection.style.display = 'block';
+                        }
+                    }
+                });
             });
         });
     }
