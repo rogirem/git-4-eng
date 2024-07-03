@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calendar Layout</title>
+    <title>git-4-eng</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
     <style>
         .line {
@@ -22,10 +22,13 @@
             background-color: #fff;
             border: 2px solid transparent;
             display: none;
-            transition: border-color 0.3s;
+            transition: border-color 0.3s, transform 0.3s;
         }
         .circle.hovered {
-            border-color: #000; 
+            border-color: #000;
+        }
+        .circle.selected {
+            transform: scale(1.2);
         }
         .col-k .circle {
             border-color: #f00;
@@ -74,6 +77,19 @@
         .block-hidden {
             display: none;
         }
+        svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        line {
+            stroke-width: 2;
+        }
+            
     </style>
 </head>
 <body class="bg-white">
@@ -96,17 +112,9 @@
             <div class="text-blue-300 col-p">П</div>
         </div>
         
-        <div class="overflow-y-scroll h-96">
+        <div class="relative overflow-y-scroll h-96">
+            <svg id="svgCanvas"></svg>
             <div id="dateContainer" class="space-y-4">
-                <div class="flex-item">
-                    <div class="date">01.01</div>
-                    <div class="line col-k"></div>
-                    <div class="line col-s"></div>
-                    <div class="line col-p"></div>
-                    <div class="placeholder placeholder-k"></div>
-                    <div class="placeholder placeholder-s"></div>
-                    <div class="placeholder placeholder-p"></div>
-                </div>
             </div>
         </div>
     </div>
